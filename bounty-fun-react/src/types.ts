@@ -10,3 +10,11 @@ export type BountyData = {
     submissions?: number;
   };
   
+  export type CreateBountyData = {
+    title: string;
+    description: string;
+    reward: number;
+    deadline: string;
+    category: string;
+    files: File[];
+  };

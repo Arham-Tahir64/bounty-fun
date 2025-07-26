@@ -5,7 +5,7 @@ import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-r
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { useWallet } from '@solana/wallet-adapter-react';
 import '@solana/wallet-adapter-react-ui/styles.css';
-import { BountyData } from './types';
+import { BountyData, CreateBountyData } from './types';
 import { BountyCreation } from './BountyCreation';
 
 // Landing Page Component
@@ -48,6 +48,18 @@ const LandingPage: React.FC = () => {
   );
 };
 
+function computeTimeLeft(deadline: string): string {
+  const now = new Date();
+  const end = new Date(deadline);
+  const diff = end.getTime() - now.getTime();
+
+  if (diff <= 0) return 'Expired';
+
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(hours / 24);
+  return days > 0 ? `${days}d left` : `${hours}h left`;
+}
+
 // Main Bounty Platform Component
 const BountyPlatform: React.FC = () => {
   const { publicKey, disconnect } = useWallet();
@@ -89,11 +101,19 @@ const BountyPlatform: React.FC = () => {
       <main className="main">
         {creating ? (
           <BountyCreation
-           onCreate={(bounty: BountyData) => {
-            setBounties([...bounties, bounty]);
-              setCreating(false);
-            }}
-            onCancel={() => setCreating(false)}
+          open={creating}
+          onClose={() => setCreating(false)}
+          onCreate={(data: CreateBountyData) => {
+            const newBounty = {
+              ...data,
+              id: Date.now().toString(),
+              status: 'open' as const,
+              author: walletAddress,
+              timeLeft: computeTimeLeft(data.deadline),
+            };
+            setBounties([...bounties, newBounty]);
+            setCreating(false);
+          }}
           />
         ) : (
           <>
