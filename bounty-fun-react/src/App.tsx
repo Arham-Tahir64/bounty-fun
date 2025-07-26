@@ -5,8 +5,15 @@ import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-r
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { useWallet } from '@solana/wallet-adapter-react';
 import '@solana/wallet-adapter-react-ui/styles.css';
-import { BountyData, CreateBountyData } from './types';
+import { BountyData, CreateBountyData, UserProfile, ProfileFormData } from './types';
 import { BountyCreation } from './BountyCreation';
+import { ProfileDialog } from './profile';
+
+interface UserProfileData {
+  displayName: string;
+  bio: string;
+  profilePicture: string;
+}
 
 // Landing Page Component
 const LandingPage: React.FC = () => {
@@ -70,6 +77,14 @@ const BountyPlatform: React.FC = () => {
   const [bounties, setBounties] = useState<BountyData[]>([]);
   const [creating, setCreating] = useState(false);
 
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
+
+  const handleProfileSubmit = (data: UserProfileData) => {
+    console.log("Profile data submitted:", data);
+    setUserProfile(data);
+  };
+
 
   const totalBounties = bounties.length;
   const totalRewards = bounties.reduce((sum, bounty) => sum + bounty.reward, 0);
@@ -84,7 +99,9 @@ const BountyPlatform: React.FC = () => {
             <span className="logo-text">bounty.fun</span>
           </div>
           <div className="header-actions">
-            <button className="btn-secondary">Profile</button>
+            <button className="btn-secondary" onClick={() => setProfileDialogOpen(true)}>
+              Profile
+            </button>
             <button className="btn-primary" onClick={() => setCreating(true)}>
               <span>+</span>
               Create Bounty
@@ -99,21 +116,28 @@ const BountyPlatform: React.FC = () => {
       </header>
 
       <main className="main">
+        <ProfileDialog
+          open={profileDialogOpen}
+          onOpenChange={setProfileDialogOpen}
+          onSubmit={handleProfileSubmit}
+          initialData={userProfile}
+        />
+
         {creating ? (
           <BountyCreation
-          open={creating}
-          onClose={() => setCreating(false)}
-          onCreate={(data: CreateBountyData) => {
-            const newBounty = {
-              ...data,
-              id: Date.now().toString(),
-              status: 'open' as const,
-              author: walletAddress,
-              timeLeft: computeTimeLeft(data.deadline),
-            };
-            setBounties([...bounties, newBounty]);
-            setCreating(false);
-          }}
+            open={creating}
+            onClose={() => setCreating(false)}
+            onCreate={(data: CreateBountyData) => {
+              const newBounty = {
+                ...data,
+                id: Date.now().toString(),
+                status: 'open' as const,
+                author: walletAddress,
+                timeLeft: computeTimeLeft(data.deadline),
+              };
+              setBounties([...bounties, newBounty]);
+              setCreating(false);
+            }}
           />
         ) : (
           <>
