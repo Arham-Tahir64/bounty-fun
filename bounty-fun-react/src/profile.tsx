@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { AlertCircle, Upload } from 'lucide-react';
 import './profile.css';
 
@@ -25,6 +25,8 @@ export function ProfileDialog({ open, onOpenChange, onSubmit, initialData }: Pro
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -94,6 +96,10 @@ export function ProfileDialog({ open, onOpenChange, onSubmit, initialData }: Pro
     reader.readAsDataURL(file);
   };
 
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   if (!open) return null;
 
   return (
@@ -126,11 +132,18 @@ export function ProfileDialog({ open, onOpenChange, onSubmit, initialData }: Pro
             </div>
 
             <label className="cursor-pointer">
-              <button type="button" className="profile-upload-button">
+              <button type="button" className="profile-upload-button" onClick={triggerFileInput}>
                 <Upload className="h-4 w-4 mr-2" />
                 Upload Photo
               </button>
-              <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+              <input 
+                id="profile-picture-upload" 
+                type="file" 
+                ref={fileInputRef}
+                className="hidden" 
+                accept="image/*" 
+                onChange={handleImageUpload} 
+              />
             </label>
           </div>
 
