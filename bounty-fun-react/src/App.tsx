@@ -5,18 +5,8 @@ import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-r
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { useWallet } from '@solana/wallet-adapter-react';
 import '@solana/wallet-adapter-react-ui/styles.css';
-
-type BountyData = {
-  id: string;
-  title: string;
-  description: string;
-  reward: number;
-  status: 'open' | 'closed';
-  timeLeft: string;
-  category: string;
-  author: string;
-  submissions?: number;
-};
+import { BountyData } from './types';
+import { BountyCreation } from './BountyCreation';
 
 // Landing Page Component
 const LandingPage: React.FC = () => {
@@ -65,7 +55,9 @@ const BountyPlatform: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'my' | 'submissions'>('all');
 
   
-  const bounties: BountyData[] = [];
+  const [bounties, setBounties] = useState<BountyData[]>([]);
+  const [creating, setCreating] = useState(false);
+
 
   const totalBounties = bounties.length;
   const totalRewards = bounties.reduce((sum, bounty) => sum + bounty.reward, 0);
@@ -81,7 +73,7 @@ const BountyPlatform: React.FC = () => {
           </div>
           <div className="header-actions">
             <button className="btn-secondary">Profile</button>
-            <button className="btn-primary">
+            <button className="btn-primary" onClick={() => setCreating(true)}>
               <span>+</span>
               Create Bounty
             </button>
@@ -95,111 +87,113 @@ const BountyPlatform: React.FC = () => {
       </header>
 
       <main className="main">
-        <div className="stats-section">
-          <div className="stats-card">
-            <div className="stats-icon">🏆</div>
-            <div className="stats-content">
-              <div className="stats-label">Total Bounties</div>
-              <div className="stats-value">{totalBounties}</div>
-            </div>
-          </div>
-          <div className="stats-card">
-            <div className="stats-icon">💰</div>
-            <div className="stats-content">
-              <div className="stats-label">Total Rewards</div>
-              <div className="stats-value">{totalRewards.toFixed(2)} SOL</div>
-            </div>
-          </div>
-          <div className="stats-card">
-            <div className="stats-icon">👥</div>
-            <div className="stats-content">
-              <div className="stats-label">Active Bounties</div>
-              <div className="stats-value">{activeBounties}</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="tabs-section">
-          <div className="tabs">
-            <button
-              className={`tab ${activeTab === 'all' ? 'active' : ''}`}
-              onClick={() => setActiveTab('all')}
-            >
-              All Bounties
-            </button>
-            <button
-              className={`tab ${activeTab === 'my' ? 'active' : ''}`}
-              onClick={() => setActiveTab('my')}
-            >
-              My Bounties
-            </button>
-            <button
-              className={`tab ${activeTab === 'submissions' ? 'active' : ''}`}
-              onClick={() => setActiveTab('submissions')}
-            >
-              My Submissions
-            </button>
-          </div>
-
-          <div className="bounties-grid">
-            {bounties.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">🎯</div>
-                <h3 className="empty-title">No Bounties Available</h3>
-                <p className="empty-description">
-                  Be the first to create a bounty or check back later for new opportunities.
-                </p>
-                <button className="btn-primary">Create First Bounty</button>
-              </div>
-            ) : (
-              bounties.map((bounty) => (
-                <div key={bounty.id} className="bounty-card">
-                  <div className="bounty-header">
-                    <h3 className="bounty-title">{bounty.title}</h3>
-                    <span className={`status-badge ${bounty.status}`}>
-                      {bounty.status}
-                    </span>
-                  </div>
-                  <p className="bounty-description">{bounty.description}</p>
-
-                  <div className="bounty-meta">
-                    <div className="bounty-reward">
-                      <span className="reward-icon">💰</span>
-                      <span className="reward-amount">{bounty.reward} SOL</span>
-                    </div>
-                    <div className="bounty-time">
-                      <span className="time-icon">⏰</span>
-                      <span className="time-text">{bounty.timeLeft}</span>
-                    </div>
-                  </div>
-
-                  <div className="bounty-footer">
-                    <div className="bounty-tags">
-                      <span className="tag">{bounty.category}</span>
-                    </div>
-                    <div className="bounty-author">
-                      <span className="author-icon">👤</span>
-                      <span className="author-text">by {bounty.author}</span>
-                    </div>
-                  </div>
-
-                  {bounty.submissions && (
-                    <div className="submissions-count">
-                      <span className="submissions-icon">📄</span>
-                      <span className="submissions-text">{bounty.submissions} submission</span>
-                    </div>
-                  )}
-
-                  <button className="submit-btn">Submit Solution</button>
+        {creating ? (
+          <BountyCreation
+           onCreate={(bounty: BountyData) => {
+            setBounties([...bounties, bounty]);
+              setCreating(false);
+            }}
+            onCancel={() => setCreating(false)}
+          />
+        ) : (
+          <>
+            <div className="stats-section">
+              <div className="stats-card">
+                <div className="stats-icon">🏆</div>
+                <div className="stats-content">
+                  <div className="stats-label">Total Bounties</div>
+                  <div className="stats-value">{totalBounties}</div>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
+              </div>
+              <div className="stats-card">
+                <div className="stats-icon">💰</div>
+                <div className="stats-content">
+                  <div className="stats-label">Total Rewards</div>
+                  <div className="stats-value">{totalRewards.toFixed(2)} SOL</div>
+                </div>
+              </div>
+              <div className="stats-card">
+                <div className="stats-icon">👥</div>
+                <div className="stats-content">
+                  <div className="stats-label">Active Bounties</div>
+                  <div className="stats-value">{activeBounties}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="tabs-section">
+              <div className="tabs">
+                <button className={`tab ${activeTab === 'all' ? 'active' : ''}`} onClick={() => setActiveTab('all')}>
+                  All Bounties
+                </button>
+                <button className={`tab ${activeTab === 'my' ? 'active' : ''}`} onClick={() => setActiveTab('my')}>
+                  My Bounties
+                </button>
+                <button className={`tab ${activeTab === 'submissions' ? 'active' : ''}`} onClick={() => setActiveTab('submissions')}>
+                  My Submissions
+                </button>
+              </div>
+
+              <div className="bounties-grid">
+                {bounties.length === 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-icon">🎯</div>
+                    <h3 className="empty-title">No Bounties Available</h3>
+                    <p className="empty-description">
+                      Be the first to create a bounty or check back later for new opportunities.
+                    </p>
+                    <button className="btn-primary" onClick={() => setCreating(true)}>Create First Bounty</button>
+                  </div>
+                ) : (
+                  bounties.map((bounty) => (
+                    <div key={bounty.id} className="bounty-card">
+                      <div className="bounty-header">
+                        <h3 className="bounty-title">{bounty.title}</h3>
+                        <span className={`status-badge ${bounty.status}`}>{bounty.status}</span>
+                      </div>
+                      <p className="bounty-description">{bounty.description}</p>
+
+                      <div className="bounty-meta">
+                        <div className="bounty-reward">
+                          <span className="reward-icon">💰</span>
+                          <span className="reward-amount">{bounty.reward} SOL</span>
+                        </div>
+                        <div className="bounty-time">
+                          <span className="time-icon">⏰</span>
+                          <span className="time-text">{bounty.timeLeft}</span>
+                        </div>
+                      </div>
+
+                      <div className="bounty-footer">
+                        <div className="bounty-tags">
+                          <span className="tag">{bounty.category}</span>
+                        </div>
+                        <div className="bounty-author">
+                          <span className="author-icon">👤</span>
+                          <span className="author-text">by {bounty.author}</span>
+                        </div>
+                      </div>
+
+                      {bounty.submissions && (
+                        <div className="submissions-count">
+                          <span className="submissions-icon">📄</span>
+                          <span className="submissions-text">{bounty.submissions} submission</span>
+                        </div>
+                      )}
+
+                      <button className="submit-btn">Submit Solution</button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </main>
     </div>
   );
 };
+
 
 // Main App Component
 function App() {
